@@ -1,0 +1,17 @@
+import gradio as gr
+def bubble_sort(input: str) -> list[int]:
+  lst = input
+  lst.replace(" ", "") #removes spaces
+  lst = list(map(int, lst.split(","))) #maps string of values to list of ints
+
+  for i in range(len(lst)): #iterates over list
+    for i in range(len(lst) - 1): # iterates over list, index shifted rightwards by 1
+
+      if lst[i] > lst[i + 1]: #compares value of index by value of next index
+        lst[i], lst[i + 1] = lst[i + 1], lst[i] #if greater, switch
+
+  return lst #returns sorted list
+
+demo = gr.Interface(fn=bubble_sort, inputs="text", outputs="text", )
+
+demo.launch()
