@@ -1,17 +1,152 @@
 import gradio as gr
-def bubble_sort(input: str) -> list[int]:
-  lst = input
-  lst.replace(" ", "") #removes spaces
-  lst = list(map(int, lst.split(","))) #maps string of values to list of ints
 
-  for i in range(len(lst)): #iterates over list
-    for i in range(len(lst) - 1): # iterates over list, index shifted rightwards by 1
+# check and convert input
 
-      if lst[i] > lst[i + 1]: #compares value of index by value of next index
-        lst[i], lst[i + 1] = lst[i + 1], lst[i] #if greater, switch
+def parse_input(text):
+    if not text.strip():
+        return None, "", "Input is empty."
 
-  return lst #returns sorted list
+    parts = text.split(",")
+    nums = []
+    for idx, p in enumerate(parts):
+        token = p.strip()
+        if token == "":
+            return None, "", f"Missing value near position {idx+1}."
+        if not token.lstrip("-").isdigit():
+            return None, "", f"'{token}' is not an integer."
+        nums.append(int(token))
 
-demo = gr.Interface(fn=bubble_sort, inputs="text", outputs="text", )
+    # Initialize state
+    state = {
+        "lst": nums,
+        "i": 0,
+        "j": 0,
+        "n": len(nums),
+        "finished": False,
+        "log": [],
+        "step_count": 0,
+        "full_step_count": 0,
+        "locked": False   # <--- Prevents actions after instant sort
+    }
+
+    msg = f"Loaded list: {nums}"
+    state["log"].append(f"[Step 0] {msg}")
+
+    return state, msg, "\n".join(state["log"])
+
+
+# 1 single sort step
+def next_step(state):
+    if state is None:
+        return None, "Load a valid list first.", ""
+
+    # if list is already sorted, lock ts down
+    if state.get("locked", False):
+        return state, "Instant sort already used. Please load a new list.", "\n".join(state["log"])
+
+    lst = state["lst"]
+    i, j, n = state["i"], state["j"], state["n"]
+
+    if state["finished"]:
+        msg = f"Sorting complete: {lst}"
+        state["step_count"] += 1
+        state["log"].append(f"[Step {state['step_count']}] {msg}")
+        return state, msg, "\n".join(state["log"])
+
+    if n <= 1:
+        state["finished"] = True
+        msg = f"Nothing to sort: {lst}"
+        state["step_count"] += 1
+        state["log"].append(f"[Step {state['step_count']}] {msg}")
+        return state, msg, "\n".join(state["log"])
+
+    # Completed all passes
+    if i >= n - 1:
+        state["finished"] = True
+        msg = f"Sorting complete: {lst}"
+        state["step_count"] += 1
+        state["log"].append(f"[Step {state['step_count']}] {msg}")
+
+        # lock ts down if sorted
+        state["locked"] = True
+
+        return state, msg + " | Sorting finished.", "\n".join(state["log"])
+
+    # End of pass
+    if j >= n - i - 1:
+        state["i"] += 1
+        state["j"] = 0
+        msg = f"Starting pass {state['i']} | {lst}"
+        state["step_count"] += 1
+        state["log"].append(f"[Step {state['step_count']}] {msg}")
+        return state, msg, "\n".join(state["log"])
+
+    # Compare and possibly swap
+    a, b = lst[j], lst[j+1]
+    if a > b:
+        lst[j], lst[j+1] = b, a
+        msg = f"Swapped {a} and {b} | {lst}"
+    else:
+        msg = f"Compared {a} and {b}, no change | {lst}"
+
+    state["j"] += 1
+    state["step_count"] += 1
+    state["log"].append(f"[Step {state['step_count']}] {msg}")
+
+    return state, msg, "\n".join(state["log"])
+
+
+# insta-sort
+def instant_sort(state):
+    if state is None:
+        return None, "Load a valid list first.", ""
+
+    # block if sorted
+    if state.get("locked", False):
+        return state, "List already sorted instantly. Load a new list.", "\n".join(state["log"])
+
+    lst = state["lst"][:]
+    n = len(lst)
+    step_counter = 0
+
+    # Full bubble sort
+    for i in range(n):
+        for j in range(n - i - 1):
+            step_counter += 1
+            if lst[j] > lst[j+1]:
+                lst[j], lst[j+1] = lst[j+1], lst[j]
+
+    state["full_step_count"] = step_counter
+    state["locked"] = True  # <--- LOCK state after instant sort
+
+    msg = f"Instant sort: {lst} | Total steps: {step_counter}"
+    state["log"].append(f"[Instant] {msg}")
+
+    return state, msg, "\n".join(state["log"])
+
+
+# Reset
+def reset():
+    return None, "Reset complete.", ""
+
+
+# Gradio UI
+with gr.Blocks() as demo:
+    gr.Markdown("## Bubble Sort — Step-by-Step + Instant Sort")
+
+    input_box = gr.Textbox(label="Enter comma-separated integers")
+    load_btn = gr.Button("Load List")
+    next_btn = gr.Button("Next Step")
+    instant_btn = gr.Button("Instant Sort")
+    reset_btn = gr.Button("Reset")
+
+    status_box = gr.Textbox(label="Status (Latest Message)")
+    log_box = gr.Textbox(label="Log", lines=14)
+    state = gr.State(value=None)
+
+    load_btn.click(parse_input, inputs=input_box, outputs=[state, status_box, log_box])
+    next_btn.click(next_step, inputs=state, outputs=[state, status_box, log_box])
+    instant_btn.click(instant_sort, inputs=state, outputs=[state, status_box, log_box])
+    reset_btn.click(reset, outputs=[state, status_box, log_box])
 
 demo.launch()
