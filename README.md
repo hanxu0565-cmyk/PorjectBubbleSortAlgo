@@ -34,7 +34,7 @@ Four pillars of computational Thinking
 3. press "next step" to interate through with bubble sort or "instant sort" to instantly sort the input
 
 ## Hugging Face link
-
+https://huggingface.co/spaces/hanxu0565/ProjectBubbleSortAlgorithm
 ## Author & Acknowledgment
 Author: Han Xu
 Acknowledgment: Used Gradio framework.
