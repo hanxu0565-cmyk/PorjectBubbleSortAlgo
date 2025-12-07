@@ -1,5 +1,5 @@
 # ProjectBubbleSortAlgo
-## Bubble Sort was chosen because although its inefficient compared to other algorithms, the simplicity behind it means that it can easily and effectively be implemented
+Bubble Sort was chosen because although its inefficient compared to other algorithms, the simplicity behind it means that it can easily and effectively be implemented
 
 ## demo screenshots
 ## Problem Breakdown and computational thinking
