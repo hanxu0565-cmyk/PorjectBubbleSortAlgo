@@ -26,7 +26,8 @@ def parse_input(text):
         "log": [],
         "step_count": 0,
         "full_step_count": 0,
-        "locked": False   # <--- Prevents actions after instant sort
+        "locked": False,   # Prevents actions after instant sort
+        "swapped": False   # Tracks if a swap occurred in the pass
     }
 
     msg = f"Loaded list: {nums}"
@@ -40,7 +41,7 @@ def next_step(state):
     if state is None:
         return None, "Load a valid list first.", ""
 
-    # if list is already sorted, lock ts down
+    # if list is already sorted, lock it down
     if state.get("locked", False):
         return state, "Instant sort already used. Please load a new list.", "\n".join(state["log"])
 
@@ -60,22 +61,23 @@ def next_step(state):
         state["log"].append(f"[Step {state['step_count']}] {msg}")
         return state, msg, "\n".join(state["log"])
 
-    # Completed all passes
-    if i >= n - 1:
-        state["finished"] = True
-        msg = f"Sorting complete: {lst}"
-        state["step_count"] += 1
-        state["log"].append(f"[Step {state['step_count']}] {msg}")
-
-        # lock ts down if sorted
-        state["locked"] = True
-
-        return state, msg + " | Sorting finished.", "\n".join(state["log"])
-
     # End of pass
     if j >= n - i - 1:
+
+        # Early stop: no swaps in the entire previous pass
+        if not state.get("swapped", False):
+            state["finished"] = True
+            state["locked"] = True
+            msg = f"No swaps in pass {i} → list sorted early: {lst}"
+            state["step_count"] += 1
+            state["log"].append(f"[Step {state['step_count']}] {msg}")
+            return state, msg, "\n".join(state["log"])
+
+        # Begin next pass
         state["i"] += 1
         state["j"] = 0
+        state["swapped"] = False  # Reset swap flag for next pass
+
         msg = f"Starting pass {state['i']} | {lst}"
         state["step_count"] += 1
         state["log"].append(f"[Step {state['step_count']}] {msg}")
@@ -85,6 +87,7 @@ def next_step(state):
     a, b = lst[j], lst[j+1]
     if a > b:
         lst[j], lst[j+1] = b, a
+        state["swapped"] = True   # Swap occurred
         msg = f"Swapped {a} and {b} | {lst}"
     else:
         msg = f"Compared {a} and {b}, no change | {lst}"
@@ -111,13 +114,17 @@ def instant_sort(state):
 
     # Full bubble sort
     for i in range(n):
+        swapped = False
         for j in range(n - i - 1):
             step_counter += 1
             if lst[j] > lst[j+1]:
                 lst[j], lst[j+1] = lst[j+1], lst[j]
+                swapped = True
+        if not swapped:
+            break
 
     state["full_step_count"] = step_counter
-    state["locked"] = True  # <--- LOCK state after instant sort
+    state["locked"] = True  # LOCK state after instant sort
 
     msg = f"Instant sort: {lst} | Total steps: {step_counter}"
     state["log"].append(f"[Instant] {msg}")
@@ -150,3 +157,4 @@ with gr.Blocks() as demo:
     reset_btn.click(reset, outputs=[state, status_box, log_box])
 
 demo.launch()
+
