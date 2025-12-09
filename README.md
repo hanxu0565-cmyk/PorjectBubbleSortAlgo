@@ -1,7 +1,15 @@
 # ProjectBubbleSortAlgo
 Bubble Sort was chosen because although its inefficient compared to other algorithms, the simplicity behind it means that it can easily and effectively be implemented
 
-## demo screenshots
+## demo video
+in this video the program functions are shown in the order:
+- load list (load input)
+- handling empty, single value inputs
+- handling formatting errors (missing value, integars, hanging comma)
+- step by step sorting + step log
+- instant sort
+- reset
+
 ## Problem Breakdown and computational thinking
  this app implements Bubble sort inside an interactive Gradio UI where users can:
 -  upload custom lists of integars
