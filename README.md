@@ -10,6 +10,10 @@ in this video the program functions are shown in the order:
 - instant sort
 - reset
 
+
+https://github.com/user-attachments/assets/959fea51-7a95-451b-8392-7bdf2872da4b
+
+
 ## Problem Breakdown and computational thinking
  this app implements Bubble sort inside an interactive Gradio UI where users can:
 -  upload custom lists of integars
