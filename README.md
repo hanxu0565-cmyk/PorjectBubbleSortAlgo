@@ -7,11 +7,11 @@ in this video the program functions are shown in the order:
 - handling empty, single value inputs
 - handling formatting errors (missing value, integars, hanging comma)
 - step by step sorting + step log
-- instant sort
+- instant sort (note: instant sort and step by step may differ in number of steps)
 - reset
 
 
-https://github.com/user-attachments/assets/959fea51-7a95-451b-8392-7bdf2872da4b
+https://github.com/user-attachments/assets/9e156e14-bb08-458b-9ce2-c69f885d403c
 
 
 ## Problem Breakdown and computational thinking
